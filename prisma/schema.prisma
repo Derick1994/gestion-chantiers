@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Utilisateur {
+  id           String    @id @default(cuid())
+  nom          String
+  identifiant  String    @unique
+  motDePasse   String
+  role         String    @default("OPERATEUR") // ADMIN | OPERATEUR
+  actif        Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  depenses     Depense[]
+}
+
+model Chantier {
+  id         String    @id @default(cuid())
+  nom        String
+  lieu       String
+  dateDebut  String
+  budget     Float?
+  statut     String    @default("En cours") // "En cours" | "Terminé"
+  createdAt  DateTime  @default(now())
+  depenses   Depense[]
+}
+
+model Categorie {
+  id       String    @id @default(cuid())
+  libelle  String
+  type     String
+  ordre    Int       @default(0)
+  depenses Depense[]
+}
+
+model Depense {
+  id            String      @id @default(cuid())
+  chantier      Chantier    @relation(fields: [chantierId], references: [id], onDelete: Cascade)
+  chantierId    String
+  categorie     Categorie   @relation(fields: [categorieId], references: [id])
+  categorieId   String
+  date          String
+  description   String?
+  montant       Float
+  beneficiaire  String?
+  mode          String      @default("Espèces")
+  reference     String?
+  quantite      Float?
+  prixUnitaire  Float?
+  saisiPar      Utilisateur? @relation(fields: [saisiParId], references: [id])
+  saisiParId    String?
+  createdAt     DateTime    @default(now())
+
+  @@index([chantierId])
+  @@index([categorieId])
+}
