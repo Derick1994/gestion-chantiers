@@ -21,6 +21,7 @@ services:
     command: sh -c "npm install && npx prisma migrate deploy && npx prisma db seed && npx next dev -H 0.0.0.0"
     environment:
       DATABASE_URL: mysql://chantiers:chantierspass@db:3306/chantiers
+      SESSION_SECRET: THIcDjk5XW4CBN1FPAnmJofUR9ld38ztOeSy6bVr
     ports:
       - "3000:3000"
     volumes:

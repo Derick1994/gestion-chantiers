@@ -2,7 +2,7 @@
 
 Guide pas à pas pour mettre l'application en ligne sur un hébergement cPanel disposant de **Setup Node.js App**.
 
-> ⚠️ **Important avant de rendre l'URL publique** : cette version (phase 1) n'a pas encore d'écran de connexion. Toute personne qui a le lien peut créer des chantiers, saisir ou supprimer des dépenses. Pour une mise en ligne de test, gardez le lien privé, ou protégez le dossier avec un mot de passe temporaire via **cPanel > Confidentialité du répertoire (Directory Privacy)**. La connexion sécurisée (comptes admin/opérateur) arrive en phase 2 — à faire avant une utilisation réelle en équipe.
+> ⚠️ **Authentification minimale en place** : un écran de connexion protège désormais l'application (voir l'étape 5, `npx prisma db seed`, qui crée un compte administrateur). Il n'y a pour l'instant qu'un seul niveau d'accès (pas de rôles ni de droits fins, pas de journal d'audit) — cela reste prévu pour une phase ultérieure.
 
 ## 1. Créer la base de données MySQL
 
@@ -40,6 +40,7 @@ Toujours dans l'écran de l'application Node.js créée, section **Environment v
 
 - `DATABASE_URL` = `mysql://UTILISATEUR:MOTDEPASSE@localhost:3306/NOMDELABASE` (avec les valeurs notées à l'étape 1)
 - `NODE_ENV` = `production`
+- `SESSION_SECRET` = une chaîne aléatoire d'au moins 32 caractères, propre à cette installation (ne réutilisez pas celle du dépôt). Elle sert à chiffrer le cookie de connexion. Vous pouvez en générer une avec `openssl rand -hex 32` dans le terminal cPanel, ou n'importe quel générateur de mot de passe long.
 
 Cliquez sur **Save**.
 
