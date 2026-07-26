@@ -45,3 +45,6 @@ next-env.d.ts
 # base de données locale
 *.db
 *.db-journal
+
+# config locale Claude Code
+.claude/settings.local.json
