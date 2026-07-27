@@ -6,6 +6,7 @@
 //
 // Usage : node --import tsx prisma/dotations-ouverture.mjs
 
+import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client.ts";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
