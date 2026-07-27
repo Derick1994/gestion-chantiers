@@ -36,6 +36,9 @@ export default async function RootLayout({ children }) {
                   <Link href="/depenses" className="hover:text-white">
                     Dépenses
                   </Link>
+                  <Link href="/caisse" className="hover:text-white">
+                    Caisse
+                  </Link>
                   {isAdmin && (
                     <>
                       <Link href="/admin/utilisateurs" className="hover:text-white">

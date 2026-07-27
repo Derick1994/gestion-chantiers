@@ -13,27 +13,29 @@ datasource db {
 }
 
 model Utilisateur {
-  id                    String    @id @default(cuid())
+  id                    String      @id @default(cuid())
   nom                   String
-  identifiant           String    @unique
+  identifiant           String      @unique
   motDePasse            String
-  role                  String    @default("OPERATEUR") // ADMIN | OPERATEUR
-  actif                 Boolean   @default(true)
-  doitChangerMotDePasse Boolean   @default(true)
-  createdAt             DateTime  @default(now())
+  role                  String      @default("OPERATEUR") // ADMIN | OPERATEUR
+  actif                 Boolean     @default(true)
+  doitChangerMotDePasse Boolean     @default(true)
+  createdAt             DateTime    @default(now())
   depenses              Depense[]
+  mouvements            Mouvement[]
 }
 
 model Chantier {
-  id         String    @id @default(cuid())
+  id         String      @id @default(cuid())
   nom        String
   lieu       String
   dateDebut  String
   budget     Float?
-  statut     String    @default("En cours") // "En cours" | "Terminé"
-  archive    Boolean   @default(false)
-  createdAt  DateTime  @default(now())
+  statut     String      @default("En cours") // "En cours" | "Terminé"
+  archive    Boolean     @default(false)
+  createdAt  DateTime    @default(now())
   depenses   Depense[]
+  mouvements Mouvement[]
 }
 
 model Categorie {
@@ -65,6 +67,23 @@ model Depense {
 
   @@index([chantierId])
   @@index([categorieId])
+}
+
+model Mouvement {
+  id           String       @id @default(cuid())
+  type         String       // ENTREE | DOTATION | RETOUR | SORTIE_EXTERNE | DEPENSE_GENERALE
+  montant      Float
+  date         String
+  chantier     Chantier?    @relation(fields: [chantierId], references: [id])
+  chantierId   String?
+  beneficiaire String?
+  note         String?
+  auteur       Utilisateur? @relation(fields: [auteurId], references: [id])
+  auteurId     String?
+  createdAt    DateTime     @default(now())
+
+  @@index([chantierId])
+  @@index([type])
 }
 
 model JournalAudit {

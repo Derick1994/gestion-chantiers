@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { fmt, fmtDate } from "@/lib/format";
+import { soldeChantier } from "@/lib/caisse";
 import AjouterDepenseForm from "./AjouterDepenseForm";
 import DepenseRow from "./DepenseRow";
 import ChantierActions from "./ChantierActions";
@@ -36,6 +37,7 @@ export default async function ChantierDetailPage({ params }) {
 
   const totalDepense = chantier.depenses.reduce((s, d) => s + d.montant, 0);
   const budgetRestant = chantier.budget != null ? chantier.budget - totalDepense : null;
+  const { dote, disponible } = await soldeChantier(chantier.id);
 
   const typesOrdre = ["Main-d'œuvre", "Matériaux", "Transport", "Location", "Divers"];
   const categoriesParType = typesOrdre
@@ -61,7 +63,7 @@ export default async function ChantierDetailPage({ params }) {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border border-slate-200 bg-white p-4">
           <p className="text-xs text-slate-500">Total dépensé</p>
           <p className="text-lg font-semibold">{fmt(totalDepense)}</p>
@@ -82,7 +84,23 @@ export default async function ChantierDetailPage({ params }) {
             {budgetRestant != null ? fmt(budgetRestant) : "—"}
           </p>
         </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-4">
+          <p className="text-xs text-slate-500">Fonds doté par la caisse</p>
+          <p className="text-lg font-semibold">{fmt(dote)}</p>
+          <p className={`text-xs mt-1 ${disponible < 0 ? "text-red-600 font-medium" : "text-slate-500"}`}>
+            {disponible < 0 ? `⚠️ À régulariser : ${fmt(disponible)}` : `Disponible : ${fmt(disponible)}`}
+          </p>
+        </div>
       </div>
+
+      {disponible < 0 && (
+        <p className="text-sm text-amber-700">
+          Ce chantier a dépensé plus que ce qui lui a été doté.{" "}
+          <Link href="/caisse" className="underline hover:text-amber-900">
+            Doter ce chantier depuis la caisse générale →
+          </Link>
+        </p>
+      )}
 
       <AjouterDepenseForm
         chantierId={chantier.id}
