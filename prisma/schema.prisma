@@ -70,12 +70,12 @@ model Depense {
 model JournalAudit {
   id            String   @id @default(cuid())
   dateHeure     DateTime @default(now())
-  acteurId      String?
+  acteurId      String?  @db.VarChar(30)
   acteurNom     String
   acteurRole    String
   action        String
-  entite        String
-  entiteId      String?
+  entite        String   @db.VarChar(50)
+  entiteId      String?  @db.VarChar(30)
   entiteLibelle String
   avant         Json?
   apres         Json?
