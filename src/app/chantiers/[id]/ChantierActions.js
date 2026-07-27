@@ -2,8 +2,7 @@
 
 import { useActionState, useState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
-import { modifierChantier, changerStatutChantier, archiverChantier } from "../actions";
-import ConfirmButton from "@/components/ConfirmButton";
+import { modifierChantier, changerStatutChantier } from "../actions";
 
 const initialState = { error: null };
 
@@ -132,14 +131,6 @@ export default function ChantierActions({ chantier }) {
       >
         Modifier
       </button>
-      <form action={archiverChantier.bind(null, chantier.id)}>
-        <ConfirmButton
-          confirmMessage="Archiver ce chantier ? Il disparaîtra de la liste principale mais restera consultable dans les archives."
-          className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
-        >
-          Archiver le chantier
-        </ConfirmButton>
-      </form>
     </div>
   );
 }

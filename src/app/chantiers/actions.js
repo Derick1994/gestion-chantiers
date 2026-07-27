@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireAdmin } from "@/lib/session";
 import { journaliser } from "@/lib/audit";
 import { dateEstPlausible, budgetEstValide, TEXTE_MAX } from "@/lib/validation";
 
@@ -153,6 +153,33 @@ export async function archiverChantier(chantierId) {
 
   revalidatePath("/chantiers");
   redirect("/chantiers");
+}
+
+export async function supprimerDefinitivementChantier(chantierId) {
+  const session = await requireAdmin();
+
+  const chantier = await prisma.chantier.findUnique({ where: { id: chantierId } });
+  if (!chantier) return;
+  if (!chantier.archive) return; // sécurité : seul un chantier déjà archivé peut être supprimé définitivement
+
+  await journaliser({
+    session,
+    action: "SUPPRESSION",
+    entite: "Chantier",
+    entiteId: chantierId,
+    entiteLibelle: chantier.nom,
+    avant: {
+      nom: chantier.nom,
+      lieu: chantier.lieu,
+      dateDebut: chantier.dateDebut,
+      budget: chantier.budget,
+    },
+  });
+
+  await prisma.chantier.delete({ where: { id: chantierId } });
+
+  revalidatePath("/chantiers");
+  redirect("/chantiers?archives=1");
 }
 
 export async function reactiverChantier(chantierId) {

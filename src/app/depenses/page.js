@@ -37,7 +37,8 @@ export default async function DepensesPage({ searchParams }) {
   const parCategorie = new Map();
   const parBeneficiaire = new Map();
   for (const d of depenses) {
-    parCategorie.set(d.categorie.libelle, (parCategorie.get(d.categorie.libelle) || 0) + d.montant);
+    const libelleCategorie = d.categorie?.libelle || "Catégorie supprimée";
+    parCategorie.set(libelleCategorie, (parCategorie.get(libelleCategorie) || 0) + d.montant);
     if (d.beneficiaire) {
       parBeneficiaire.set(d.beneficiaire, (parBeneficiaire.get(d.beneficiaire) || 0) + d.montant);
     }
@@ -66,12 +67,20 @@ export default async function DepensesPage({ searchParams }) {
             {depenses.length} dépense{depenses.length > 1 ? "s" : ""} · total {fmt(total)}
           </p>
         </div>
-        <a
-          href={`/api/depenses/export?${exportQuery.toString()}`}
-          className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100"
-        >
-          Exporter CSV
-        </a>
+        <div className="flex gap-2">
+          <a
+            href={`/api/depenses/export?${exportQuery.toString()}`}
+            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100"
+          >
+            Exporter CSV
+          </a>
+          <a
+            href={`/api/depenses/export-excel?${exportQuery.toString()}`}
+            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100"
+          >
+            Exporter Excel
+          </a>
+        </div>
       </div>
 
       <form
@@ -228,7 +237,7 @@ export default async function DepensesPage({ searchParams }) {
                         {d.chantier.nom}
                       </Link>
                     </td>
-                    <td className="p-3">{d.categorie.libelle}</td>
+                    <td className="p-3">{d.categorie?.libelle || "Catégorie supprimée"}</td>
                     <td className="p-3 text-slate-600">{d.beneficiaire || "—"}</td>
                     <td className="p-3 text-slate-600">{d.mode}</td>
                     <td className="p-3 text-right font-medium">{fmt(d.montant)}</td>

@@ -2,12 +2,16 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { fmt, fmtDate } from "@/lib/format";
 import SearchBox from "./SearchBox";
-import { reactiverChantier } from "./actions";
+import { reactiverChantier, supprimerDefinitivementChantier } from "./actions";
 import PendingButton from "@/components/PendingButton";
+import ConfirmButton from "@/components/ConfirmButton";
+import { getSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 export default async function ChantiersPage({ searchParams }) {
+  const session = await getSession();
+  const isAdmin = session.role === "ADMIN";
   const { q, archives } = await searchParams;
   const recherche = (q || "").trim();
   const voirArchives = archives === "1";
@@ -84,11 +88,23 @@ export default async function ChantiersPage({ searchParams }) {
                   {c.lieu} · début {fmtDate(c.dateDebut)}
                 </p>
               </div>
-              <form action={reactiverChantier.bind(null, c.id)}>
-                <PendingButton className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium hover:bg-slate-100">
-                  Réactiver
-                </PendingButton>
-              </form>
+              <div className="flex items-center gap-2">
+                <form action={reactiverChantier.bind(null, c.id)}>
+                  <PendingButton className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium hover:bg-slate-100">
+                    Réactiver
+                  </PendingButton>
+                </form>
+                {isAdmin && (
+                  <form action={supprimerDefinitivementChantier.bind(null, c.id)}>
+                    <ConfirmButton
+                      confirmMessage="Supprimer DÉFINITIVEMENT ce chantier et toutes ses dépenses ? Cette action est irréversible et ne peut pas être annulée."
+                      className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                    >
+                      Supprimer définitivement
+                    </ConfirmButton>
+                  </form>
+                )}
+              </div>
             </div>
           ))}
         </div>

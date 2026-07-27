@@ -35,7 +35,14 @@ export default function DepenseRow({ depense, chantierId, categoriesParType }) {
         ...categoriesParType,
         {
           type: "Archivée",
-          items: [{ id: depense.categorieId, libelle: `${depense.categorie.libelle} (archivée)` }],
+          items: [
+            {
+              id: depense.categorieId,
+              libelle: depense.categorie
+                ? `${depense.categorie.libelle} (archivée)`
+                : "Catégorie inconnue (supprimée)",
+            },
+          ],
         },
       ];
 
@@ -161,7 +168,7 @@ export default function DepenseRow({ depense, chantierId, categoriesParType }) {
   return (
     <tr className="border-b border-slate-100 last:border-0">
       <td className="p-3 whitespace-nowrap">{fmtDate(depense.date)}</td>
-      <td className="p-3">{depense.categorie.libelle}</td>
+      <td className="p-3">{depense.categorie?.libelle || "Catégorie supprimée"}</td>
       <td className="p-3 text-slate-600">{depense.description || "—"}</td>
       <td className="p-3 text-slate-600">{depense.beneficiaire || "—"}</td>
       <td className="p-3 text-slate-600">{depense.mode}</td>

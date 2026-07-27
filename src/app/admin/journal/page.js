@@ -12,6 +12,7 @@ const LIBELLES_ACTION = {
   ARCHIVAGE: "Archivage",
   REACTIVATION: "Réactivation",
   ANNULATION: "Suppression",
+  SUPPRESSION: "Suppression définitive",
   SUPPRESSION_REFUSEE: "Suppression refusée",
   CHANGEMENT_MOT_DE_PASSE: "Changement de mot de passe",
 };
@@ -98,7 +99,9 @@ export default async function JournalPage({ searchParams }) {
                   <td className="p-3 whitespace-nowrap">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        e.action === "SUPPRESSION_REFUSEE" || e.action === "ECHEC_CONNEXION"
+                        e.action === "SUPPRESSION_REFUSEE" ||
+                        e.action === "ECHEC_CONNEXION" ||
+                        e.action === "SUPPRESSION"
                           ? "bg-red-100 text-red-700"
                           : "bg-slate-100 text-slate-600"
                       }`}

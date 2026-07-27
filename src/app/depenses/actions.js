@@ -167,7 +167,7 @@ export async function supprimerDepense(prevState, formData) {
   });
   if (!depense) return;
 
-  const libelle = `${depense.montant} FCFA — ${depense.categorie.libelle} — ${depense.date}`;
+  const libelle = `${depense.montant} FCFA — ${depense.categorie?.libelle || "catégorie supprimée"} — ${depense.date}`;
 
   const dansLaFenetre =
     Date.now() - depense.createdAt.getTime() <= FENETRE_SUPPRESSION_MIN * 60 * 1000;
@@ -196,7 +196,7 @@ export async function supprimerDepense(prevState, formData) {
     entite: "Depense",
     entiteId: depenseId,
     entiteLibelle: libelle,
-    avant: { montant: depense.montant, date: depense.date, categorie: depense.categorie.libelle },
+    avant: { montant: depense.montant, date: depense.date, categorie: depense.categorie?.libelle || null },
   });
 
   revalidatePath(`/chantiers/${chantierId}`);

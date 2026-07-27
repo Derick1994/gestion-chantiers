@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { fmt, fmtDate } from "@/lib/format";
 import { soldeChantier } from "@/lib/caisse";
+import { getSession } from "@/lib/session";
 import AjouterDepenseForm from "./AjouterDepenseForm";
 import DepenseRow from "./DepenseRow";
 import ChantierActions from "./ChantierActions";
+import ChantierDangerZone from "./ChantierDangerZone";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +40,8 @@ export default async function ChantierDetailPage({ params }) {
   const totalDepense = chantier.depenses.reduce((s, d) => s + d.montant, 0);
   const budgetRestant = chantier.budget != null ? chantier.budget - totalDepense : null;
   const { dote, disponible } = await soldeChantier(chantier.id);
+  const session = await getSession();
+  const isAdmin = session.role === "ADMIN";
 
   const typesOrdre = ["Main-d'œuvre", "Matériaux", "Transport", "Location", "Divers"];
   const categoriesParType = typesOrdre
@@ -142,6 +146,8 @@ export default async function ChantierDetailPage({ params }) {
           </div>
         )}
       </div>
+
+      <ChantierDangerZone chantier={chantier} isAdmin={isAdmin} />
     </div>
   );
 }

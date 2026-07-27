@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/session";
 import { fmtDate } from "@/lib/format";
+import { construireFiltreDepenses } from "@/lib/depenses-export";
 
 function csvEscape(value) {
   const s = String(value ?? "");
@@ -14,21 +15,7 @@ export async function GET(request) {
   await requireSession();
 
   const { searchParams } = new URL(request.url);
-  const chantierId = searchParams.get("chantierId") || "";
-  const categorieId = searchParams.get("categorieId") || "";
-  const beneficiaire = (searchParams.get("beneficiaire") || "").trim();
-  const debut = searchParams.get("debut") || "";
-  const fin = searchParams.get("fin") || "";
-
-  const where = {};
-  if (chantierId) where.chantierId = chantierId;
-  if (categorieId) where.categorieId = categorieId;
-  if (beneficiaire) where.beneficiaire = { contains: beneficiaire };
-  if (debut || fin) {
-    where.date = {};
-    if (debut) where.date.gte = debut;
-    if (fin) where.date.lte = fin;
-  }
+  const where = construireFiltreDepenses(searchParams);
 
   const depenses = await prisma.depense.findMany({
     where,
@@ -49,7 +36,7 @@ export async function GET(request) {
   const lignes = depenses.map((d) => [
     fmtDate(d.date),
     d.chantier.nom,
-    d.categorie.libelle,
+    d.categorie?.libelle || "Catégorie supprimée",
     d.description || "",
     d.beneficiaire || "",
     d.mode,
