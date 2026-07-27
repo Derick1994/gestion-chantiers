@@ -32,6 +32,9 @@ export default async function RootLayout({ children }) {
                   <Link href="/chantiers" className="hover:text-white">
                     Chantiers
                   </Link>
+                  <Link href="/depenses" className="hover:text-white">
+                    Dépenses
+                  </Link>
                 </nav>
               </div>
               <form action={logout} className="flex items-center gap-3 text-sm text-slate-300">

@@ -1,10 +1,24 @@
 "use client";
 
 import { useActionState, useState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
 import { modifierChantier, changerStatutChantier, supprimerChantier } from "../actions";
 import ConfirmButton from "@/components/ConfirmButton";
 
 const initialState = { error: null };
+
+function StatutButton({ label }) {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium hover:bg-slate-100 disabled:opacity-50"
+    >
+      {pending ? "…" : label}
+    </button>
+  );
+}
 
 export default function ChantierActions({ chantier }) {
   const [editing, setEditing] = useState(false);
@@ -108,12 +122,9 @@ export default function ChantierActions({ chantier }) {
           chantier.statut === "Terminé" ? "En cours" : "Terminé"
         )}
       >
-        <button
-          type="submit"
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium hover:bg-slate-100"
-        >
-          Marquer {chantier.statut === "Terminé" ? "en cours" : "terminé"}
-        </button>
+        <StatutButton
+          label={`Marquer ${chantier.statut === "Terminé" ? "en cours" : "terminé"}`}
+        />
       </form>
       <button
         onClick={() => setEditing(true)}

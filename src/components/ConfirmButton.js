@@ -1,17 +1,22 @@
 "use client";
 
+import { useFormStatus } from "react-dom";
+
 export default function ConfirmButton({ children, confirmMessage, className }) {
+  const { pending } = useFormStatus();
+
   return (
     <button
       type="submit"
-      className={className}
+      disabled={pending}
+      className={`${className} disabled:opacity-50`}
       onClick={(e) => {
         if (!confirm(confirmMessage)) {
           e.preventDefault();
         }
       }}
     >
-      {children}
+      {pending ? "…" : children}
     </button>
   );
 }
