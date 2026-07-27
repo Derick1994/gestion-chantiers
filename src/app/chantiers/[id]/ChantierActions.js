@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
-import { modifierChantier, changerStatutChantier, supprimerChantier } from "../actions";
+import { modifierChantier, changerStatutChantier, archiverChantier } from "../actions";
 import ConfirmButton from "@/components/ConfirmButton";
 
 const initialState = { error: null };
@@ -132,12 +132,12 @@ export default function ChantierActions({ chantier }) {
       >
         Modifier
       </button>
-      <form action={supprimerChantier.bind(null, chantier.id)}>
+      <form action={archiverChantier.bind(null, chantier.id)}>
         <ConfirmButton
-          confirmMessage="Supprimer ce chantier et toutes ses dépenses ? Cette action est irréversible."
+          confirmMessage="Archiver ce chantier ? Il disparaîtra de la liste principale mais restera consultable dans les archives."
           className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
         >
-          Supprimer le chantier
+          Archiver le chantier
         </ConfirmButton>
       </form>
     </div>

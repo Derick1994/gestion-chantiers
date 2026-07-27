@@ -17,6 +17,7 @@ export const metadata = {
 export default async function RootLayout({ children }) {
   const session = await getSession();
   const isLoggedIn = Boolean(session.userId);
+  const isAdmin = session.role === "ADMIN";
 
   return (
     <html lang="fr" className={`${geistSans.variable} h-full antialiased`}>
@@ -35,6 +36,19 @@ export default async function RootLayout({ children }) {
                   <Link href="/depenses" className="hover:text-white">
                     Dépenses
                   </Link>
+                  {isAdmin && (
+                    <>
+                      <Link href="/admin/utilisateurs" className="hover:text-white">
+                        Utilisateurs
+                      </Link>
+                      <Link href="/admin/categories" className="hover:text-white">
+                        Catégories
+                      </Link>
+                      <Link href="/admin/journal" className="hover:text-white">
+                        Journal
+                      </Link>
+                    </>
+                  )}
                 </nav>
               </div>
               <form action={logout} className="flex items-center gap-3 text-sm text-slate-300">

@@ -3,12 +3,15 @@
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/session";
+import { journaliser } from "@/lib/audit";
 import {
   dateEstPlausible,
   montantEstValide,
   MODES_PAIEMENT,
   TEXTE_MAX,
 } from "@/lib/validation";
+
+const FENETRE_SUPPRESSION_MIN = 15;
 
 function lireEtValiderChamps(formData) {
   const chantierId = String(formData.get("chantierId") || "").trim();
@@ -61,8 +64,12 @@ function lireEtValiderChamps(formData) {
   };
 }
 
+function libelleDepense(values, categorieLibelle) {
+  return `${values.montant} FCFA — ${categorieLibelle || "?"} — ${values.date}`;
+}
+
 export async function ajouterDepense(prevState, formData) {
-  await requireSession();
+  const session = await requireSession();
 
   const result = lireEtValiderChamps(formData);
   if (result.error) return { error: result.error };
@@ -74,24 +81,37 @@ export async function ajouterDepense(prevState, formData) {
   }
 
   const categorie = await prisma.categorie.findUnique({ where: { id: values.categorieId } });
-  if (!categorie) {
-    return { error: "Cette catégorie n'existe pas. Rechargez la page et réessayez." };
+  if (!categorie || !categorie.actif) {
+    return { error: "Cette catégorie n'existe pas ou n'est plus active. Rechargez la page." };
   }
 
+  let depense;
   try {
-    await prisma.depense.create({ data: values });
+    depense = await prisma.depense.create({
+      data: { ...values, saisiParId: session.userId },
+    });
   } catch {
     return { error: "Une erreur est survenue lors de l'enregistrement. Réessayez." };
   }
 
+  await journaliser({
+    session,
+    action: "CREATION",
+    entite: "Depense",
+    entiteId: depense.id,
+    entiteLibelle: `${libelleDepense(values, categorie.libelle)} — ${chantier.nom}`,
+    apres: values,
+  });
+
   revalidatePath(`/chantiers/${values.chantierId}`);
   revalidatePath("/chantiers");
+  revalidatePath("/depenses");
 
   return { error: null, success: true };
 }
 
 export async function modifierDepense(prevState, formData) {
-  await requireSession();
+  const session = await requireSession();
 
   const depenseId = String(formData.get("depenseId") || "").trim();
   if (!depenseId) {
@@ -101,6 +121,11 @@ export async function modifierDepense(prevState, formData) {
   const result = lireEtValiderChamps(formData);
   if (result.error) return { error: result.error };
   const { values } = result;
+
+  const depenseAvant = await prisma.depense.findUnique({ where: { id: depenseId } });
+  if (!depenseAvant) {
+    return { error: "Dépense introuvable." };
+  }
 
   const categorie = await prisma.categorie.findUnique({ where: { id: values.categorieId } });
   if (!categorie) {
@@ -113,15 +138,70 @@ export async function modifierDepense(prevState, formData) {
     return { error: "Une erreur est survenue lors de la modification. Réessayez." };
   }
 
+  await journaliser({
+    session,
+    action: "MODIFICATION",
+    entite: "Depense",
+    entiteId: depenseId,
+    entiteLibelle: libelleDepense(values, categorie.libelle),
+    avant: depenseAvant,
+    apres: values,
+  });
+
   revalidatePath(`/chantiers/${values.chantierId}`);
   revalidatePath("/chantiers");
+  revalidatePath("/depenses");
 
   return { error: null, success: true };
 }
 
-export async function supprimerDepense(depenseId, chantierId) {
-  await requireSession();
+export async function supprimerDepense(prevState, formData) {
+  const session = await requireSession();
+
+  const depenseId = String(formData.get("depenseId") || "").trim();
+  const chantierId = String(formData.get("chantierId") || "").trim();
+
+  const depense = await prisma.depense.findUnique({
+    where: { id: depenseId },
+    include: { categorie: true },
+  });
+  if (!depense) return;
+
+  const libelle = `${depense.montant} FCFA — ${depense.categorie.libelle} — ${depense.date}`;
+
+  const dansLaFenetre =
+    Date.now() - depense.createdAt.getTime() <= FENETRE_SUPPRESSION_MIN * 60 * 1000;
+  const estAuteur = depense.saisiParId === session.userId;
+  const autorise = session.role === "ADMIN" || (dansLaFenetre && estAuteur);
+
+  if (!autorise) {
+    await journaliser({
+      session,
+      action: "SUPPRESSION_REFUSEE",
+      entite: "Depense",
+      entiteId: depenseId,
+      entiteLibelle: libelle,
+    });
+    return {
+      error:
+        "Cette dépense ne peut plus être supprimée directement (au-delà de 15 minutes après sa saisie). Contactez un administrateur.",
+    };
+  }
+
   await prisma.depense.delete({ where: { id: depenseId } });
+
+  await journaliser({
+    session,
+    action: "ANNULATION",
+    entite: "Depense",
+    entiteId: depenseId,
+    entiteLibelle: libelle,
+    avant: { montant: depense.montant, date: depense.date, categorie: depense.categorie.libelle },
+  });
+
   revalidatePath(`/chantiers/${chantierId}`);
   revalidatePath("/chantiers");
+  revalidatePath("/depenses");
+
+  return { error: null, success: true };
 }

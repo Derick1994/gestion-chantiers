@@ -21,6 +21,7 @@ async function getData(id) {
   if (!chantier) return null;
 
   const categories = await prisma.categorie.findMany({
+    where: { actif: true },
     orderBy: [{ type: "asc" }, { ordre: "asc" }],
   });
 

@@ -13,14 +13,15 @@ datasource db {
 }
 
 model Utilisateur {
-  id           String    @id @default(cuid())
-  nom          String
-  identifiant  String    @unique
-  motDePasse   String
-  role         String    @default("OPERATEUR") // ADMIN | OPERATEUR
-  actif        Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  depenses     Depense[]
+  id                    String    @id @default(cuid())
+  nom                   String
+  identifiant           String    @unique
+  motDePasse            String
+  role                  String    @default("OPERATEUR") // ADMIN | OPERATEUR
+  actif                 Boolean   @default(true)
+  doitChangerMotDePasse Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  depenses              Depense[]
 }
 
 model Chantier {
@@ -30,6 +31,7 @@ model Chantier {
   dateDebut  String
   budget     Float?
   statut     String    @default("En cours") // "En cours" | "Terminé"
+  archive    Boolean   @default(false)
   createdAt  DateTime  @default(now())
   depenses   Depense[]
 }
@@ -39,6 +41,7 @@ model Categorie {
   libelle  String
   type     String
   ordre    Int       @default(0)
+  actif    Boolean   @default(true)
   depenses Depense[]
 }
 
@@ -62,4 +65,22 @@ model Depense {
 
   @@index([chantierId])
   @@index([categorieId])
+}
+
+model JournalAudit {
+  id            String   @id @default(cuid())
+  dateHeure     DateTime @default(now())
+  acteurId      String?
+  acteurNom     String
+  acteurRole    String
+  action        String
+  entite        String
+  entiteId      String?
+  entiteLibelle String
+  avant         Json?
+  apres         Json?
+
+  @@index([dateHeure])
+  @@index([entite, entiteId])
+  @@index([acteurId])
 }

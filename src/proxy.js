@@ -8,6 +8,7 @@ export default async function proxy(request) {
 
   const isLoggedIn = Boolean(session.userId);
   const isLoginPage = request.nextUrl.pathname === "/login";
+  const isChangerMotDePassePage = request.nextUrl.pathname === "/changer-mot-de-passe";
 
   if (!isLoggedIn && !isLoginPage) {
     return NextResponse.redirect(new URL("/login", request.url));
@@ -15,6 +16,10 @@ export default async function proxy(request) {
 
   if (isLoggedIn && isLoginPage) {
     return NextResponse.redirect(new URL("/chantiers", request.url));
+  }
+
+  if (isLoggedIn && session.doitChangerMotDePasse && !isChangerMotDePassePage) {
+    return NextResponse.redirect(new URL("/changer-mot-de-passe", request.url));
   }
 
   return response;

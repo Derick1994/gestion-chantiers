@@ -10,12 +10,34 @@ const initialState = { error: null };
 export default function DepenseRow({ depense, chantierId, categoriesParType }) {
   const [editing, setEditing] = useState(false);
   const [state, formAction, pending] = useActionState(modifierDepense, initialState);
+  const [suppressionState, suppressionAction] = useActionState(supprimerDepense, initialState);
 
   useEffect(() => {
     if (state?.success) {
       setEditing(false);
     }
   }, [state]);
+
+  useEffect(() => {
+    if (suppressionState?.error) {
+      alert(suppressionState.error);
+    }
+  }, [suppressionState]);
+
+  // Si la catégorie de cette dépense a été archivée depuis, on l'inclut quand
+  // même dans les options pour ne pas la perdre silencieusement à l'édition.
+  const categorieToujoursListee = categoriesParType.some((g) =>
+    g.items.some((c) => c.id === depense.categorieId)
+  );
+  const optionsCategorie = categorieToujoursListee
+    ? categoriesParType
+    : [
+        ...categoriesParType,
+        {
+          type: "Archivée",
+          items: [{ id: depense.categorieId, libelle: `${depense.categorie.libelle} (archivée)` }],
+        },
+      ];
 
   if (editing) {
     return (
@@ -44,7 +66,7 @@ export default function DepenseRow({ depense, chantierId, categoriesParType }) {
                 required
                 className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
               >
-                {categoriesParType.map((g) => (
+                {optionsCategorie.map((g) => (
                   <optgroup key={g.type} label={g.type}>
                     {g.items.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -151,7 +173,9 @@ export default function DepenseRow({ depense, chantierId, categoriesParType }) {
         >
           Modifier
         </button>
-        <form action={supprimerDepense.bind(null, depense.id, chantierId)} className="inline">
+        <form action={suppressionAction} className="inline">
+          <input type="hidden" name="depenseId" value={depense.id} />
+          <input type="hidden" name="chantierId" value={chantierId} />
           <ConfirmButton
             confirmMessage="Supprimer cette dépense ?"
             className="text-xs text-red-600 hover:underline"
