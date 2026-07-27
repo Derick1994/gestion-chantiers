@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { fmt, fmtDate } from "@/lib/format";
-import { supprimerDepense } from "@/app/depenses/actions";
 import AjouterDepenseForm from "./AjouterDepenseForm";
+import DepenseRow from "./DepenseRow";
+import ChantierActions from "./ChantierActions";
 
 export const dynamic = "force-dynamic";
 
@@ -48,13 +49,14 @@ export default async function ChantierDetailPage({ params }) {
         <Link href="/chantiers" className="text-sm text-slate-500 hover:underline">
           ← Chantiers
         </Link>
-        <div className="flex items-start justify-between mt-1">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mt-1">
           <div>
             <h1 className="text-xl font-semibold">{chantier.nom}</h1>
             <p className="text-sm text-slate-500">
               {chantier.lieu} · début {fmtDate(chantier.dateDebut)} · {chantier.statut}
             </p>
           </div>
+          <ChantierActions chantier={chantier} />
         </div>
       </div>
 
@@ -109,26 +111,12 @@ export default async function ChantierDetailPage({ params }) {
               </thead>
               <tbody>
                 {chantier.depenses.map((d) => (
-                  <tr key={d.id} className="border-b border-slate-100 last:border-0">
-                    <td className="p-3 whitespace-nowrap">{fmtDate(d.date)}</td>
-                    <td className="p-3">{d.categorie.libelle}</td>
-                    <td className="p-3 text-slate-600">{d.description || "—"}</td>
-                    <td className="p-3 text-slate-600">{d.beneficiaire || "—"}</td>
-                    <td className="p-3 text-slate-600">{d.mode}</td>
-                    <td className="p-3 text-right font-medium">{fmt(d.montant)}</td>
-                    <td className="p-3 text-right">
-                      <form
-                        action={supprimerDepense.bind(null, d.id, chantier.id)}
-                      >
-                        <button
-                          type="submit"
-                          className="text-xs text-red-600 hover:underline"
-                        >
-                          Supprimer
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
+                  <DepenseRow
+                    key={d.id}
+                    depense={d}
+                    chantierId={chantier.id}
+                    categoriesParType={categoriesParType}
+                  />
                 ))}
               </tbody>
             </table>

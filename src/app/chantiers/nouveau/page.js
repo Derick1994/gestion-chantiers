@@ -1,7 +1,14 @@
+"use client";
+
 import Link from "next/link";
+import { useActionState } from "react";
 import { creerChantier } from "../actions";
 
+const initialState = { error: null };
+
 export default function NouveauChantierPage() {
+  const [state, formAction, pending] = useActionState(creerChantier, initialState);
+
   return (
     <div className="max-w-lg space-y-4">
       <div>
@@ -11,7 +18,7 @@ export default function NouveauChantierPage() {
         <h1 className="text-xl font-semibold mt-1">Nouveau chantier</h1>
       </div>
 
-      <form action={creerChantier} className="space-y-4 rounded-lg border border-slate-200 bg-white p-5">
+      <form action={formAction} className="space-y-4 rounded-lg border border-slate-200 bg-white p-5">
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="nom">
             Nom du chantier *
@@ -67,6 +74,8 @@ export default function NouveauChantierPage() {
           </div>
         </div>
 
+        {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+
         <div className="flex justify-end gap-2 pt-2">
           <Link
             href="/chantiers"
@@ -76,9 +85,10 @@ export default function NouveauChantierPage() {
           </Link>
           <button
             type="submit"
-            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+            disabled={pending}
+            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
           >
-            Créer le chantier
+            {pending ? "Création…" : "Créer le chantier"}
           </button>
         </div>
       </form>
